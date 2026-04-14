@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'price',
+        'deposit_amount',
+        'stock',
+        'image_url',
+        'images',
+        'status',
+        'category_id',
+        'shop_id',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'deposit_amount' => 'decimal:2',
+        'images' => 'array',
+    ];
+
+    // Một product thuộc về một category
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    // Một product thuộc về một shop
+    public function shop()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // Lịch sử thay đổi giá của sản phẩm
+    public function priceHistories()
+    {
+        return $this->hasMany(ProductPriceHistory::class)->orderBy('created_at', 'desc');
+    }
+
+    // Lần thay đổi giá gần nhất
+    public function latestPriceChange()
+    {
+        return $this->hasOne(ProductPriceHistory::class)->latestOfMany();
+    }
+
+    // Kiểm tra sản phẩm có cần đặt cọc không
+    public function requiresDeposit(): bool
+    {
+        return $this->deposit_amount > 0;
+    }
+}
