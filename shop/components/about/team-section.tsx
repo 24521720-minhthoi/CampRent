@@ -2,10 +2,38 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail } from "lucide-react";
 
 const teamMembers = [
-  { name: "Nguyễn Minh Thời", mssv: "24521720", role: "Nhóm trưởng", responsibility: "PM, Backend, Docs", email: "24521720@gm.uit.edu.vn" },
-  { name: "Lưu Nhật Quang", mssv: "24521469", role: "Thành viên", responsibility: "AI Service, Backend Logic", email: "24521469@gm.uit.edu.vn" },
-  { name: "Bùi Quốc Trung", mssv: "24521872", role: "Thành viên", responsibility: "Database, Infrastructure", email: "24521872@gm.uit.edu.vn" },
-  { name: "Chu Huỳnh Khánh An", mssv: "24520038", role: "Thành viên", responsibility: "Frontend, UI/UX, Branding", email: "24520038@gm.uit.edu.vn" },
+  { 
+    name: "Nguyễn Minh Thời", 
+    mssv: "24521720", 
+    role: "Nhóm trưởng", 
+    responsibility: "PM, Backend, Docs", 
+    email: "24521720@gm.uit.edu.vn",
+    avatar: "/thoi.png"
+  },
+  { 
+    name: "Lưu Nhật Quang", 
+    mssv: "24521469", 
+    role: "Thành viên", 
+    responsibility: "AI Service, Backend Logic", 
+    email: "24521469@gm.uit.edu.vn",
+    avatar: "/quang.png"
+  },
+  { 
+    name: "Bùi Quốc Trung", 
+    mssv: "24521872", 
+    role: "Thành viên", 
+    responsibility: "Database, Infrastructure", 
+    email: "24521872@gm.uit.edu.vn",
+    avatar: "/trung.png"
+  },
+  { 
+    name: "Chu Huỳnh Khánh An", 
+    mssv: "24520038", 
+    role: "Thành viên", 
+    responsibility: "Frontend, UI/UX, Branding", 
+    email: "24520038@gm.uit.edu.vn",
+    avatar: "/an.png"
+  },
 ];
 
 export function TeamSection() {
@@ -20,8 +48,12 @@ export function TeamSection() {
           {teamMembers.map((member) => (
             <Card key={member.mssv} className="text-center rounded-2xl">
               <CardContent className="p-6 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
-                  {member.name.charAt(member.name.lastIndexOf(" ") + 1)}
+                <div className="w-24 h-24 mx-auto mb-4 overflow-hidden rounded-full border-4 border-primary/20">
+                  <img 
+                    src={member.avatar} 
+                    alt={member.name} 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">{member.name}</h3>

@@ -20,7 +20,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getCurrentUser, logout } from "@/services/auth";
 import { useRouter } from "next/navigation";
 import { useGetCart } from "@/hooks/use-cart";
-import Logo from "@/public/logo.png";
+import Logo from "@/public/logo.svg";
 
 const navItems = [
   {

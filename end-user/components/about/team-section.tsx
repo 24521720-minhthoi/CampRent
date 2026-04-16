@@ -8,6 +8,7 @@ const teamMembers = [
     role: "Nhóm trưởng",
     responsibility: "PM, Backend Integration, Documentation",
     email: "24521720@gm.uit.edu.vn",
+    avatar: "/thoi.png"
   },
   {
     name: "Lưu Nhật Quang",
@@ -15,6 +16,7 @@ const teamMembers = [
     role: "Thành viên",
     responsibility: "AI Service, Backend Logic, API",
     email: "24521469@gm.uit.edu.vn",
+    avatar: "/quang.png"
   },
   {
     name: "Bùi Quốc Trung",
@@ -22,6 +24,7 @@ const teamMembers = [
     role: "Thành viên",
     responsibility: "Database, Infrastructure, DevOps",
     email: "24521872@gm.uit.edu.vn",
+    avatar: "/trung.png"
   },
   {
     name: "Chu Huỳnh Khánh An",
@@ -29,6 +32,7 @@ const teamMembers = [
     role: "Thành viên",
     responsibility: "Frontend, UI/UX, Branding",
     email: "24520038@gm.uit.edu.vn",
+    avatar: "/an.png"
   },
 ];
 
@@ -47,9 +51,13 @@ export function TeamSection() {
           {teamMembers.map((member) => (
             <Card key={member.mssv} className="text-center rounded-2xl">
               <CardContent className="p-6 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-2xl font-bold text-primary">
-                  {member.name.charAt(member.name.lastIndexOf(" ") + 1)}
-                </div>
+                <div className="w-24 h-24 mx-auto mb-4 overflow-hidden rounded-full border-4 border-primary/20">
+                <img 
+                  src={member.avatar} 
+                  alt={member.name} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
                 <div>
                   <h3 className="font-semibold text-lg">{member.name}</h3>
                   <p className="text-sm text-muted-foreground">{member.mssv}</p>
