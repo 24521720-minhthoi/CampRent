@@ -4,7 +4,7 @@ import { FacebookLoginButton } from "@/components/auth/facebook-button";
 import { GoogleLoginButton } from "@/components/auth/google-button";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "@/public/logo.png";
+import Logo from "@/public/logo.svg";
 
 export const metadata: Metadata = {
   title: "Đăng nhập tài khoản",

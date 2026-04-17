@@ -8,7 +8,7 @@ export function AuthHeader() {
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="/logo.png"
+              src="/logo.svg"
               alt="Logo"
               width={60}
               height={60}
