@@ -108,12 +108,25 @@ class AIServiceClient
     }
 
     /**
-     * Check if AI service is available - skip health check, just verify URL is configured.
+     * Check if AI service is available before sending a chat request.
      */
     public function isAvailable(): bool
     {
-        // Skip health check to avoid connection issues between Docker containers
-        // Just verify the service URL is configured
-        return !empty($this->baseUrl);
+        if (empty($this->baseUrl)) {
+            return false;
+        }
+
+        try {
+            return Http::timeout(1)
+                ->get("{$this->baseUrl}/health")
+                ->successful();
+        } catch (\Throwable $e) {
+            Log::info('AI Service is not reachable, local fallback will be used', [
+                'url' => "{$this->baseUrl}/health",
+                'message' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 }

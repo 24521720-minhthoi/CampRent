@@ -16,12 +16,12 @@ return new class extends Migration
             $table->decimal('deposit_amount', 10, 2)->default(0)->after('price');
         });
 
-        DB::table('products')->where('status', 'Con hang')->update(['status' => 'available']);
-        DB::table('products')->where('status', 'Dang cho thue')->update(['status' => 'rented']);
-        DB::table('products')->where('status', 'Bao tri')->update(['status' => 'maintenance']);
+        DB::table('products')->whereIn('status', ['Con hang', 'Còn hàng'])->update(['status' => 'available']);
+        DB::table('products')->whereIn('status', ['Dang cho thue', 'Đang cho thuê'])->update(['status' => 'rented']);
+        DB::table('products')->whereIn('status', ['Bao tri', 'Bảo trì'])->update(['status' => 'maintenance']);
 
         if (DB::getDriverName() !== 'sqlite') {
-            DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('available', 'rented', 'maintenance') NOT NULL DEFAULT 'available'");
+            DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('available', 'rented', 'maintenance', 'suspended', 'discontinued', 'out_of_stock') NOT NULL DEFAULT 'available'");
         }
     }
 

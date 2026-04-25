@@ -12,32 +12,32 @@ class ShopSeeder extends Seeder
     {
         $shops = [
             [
-                'name' => 'Outdoor Sài Gòn',
+                'name' => 'Outdoor Sai Gon',
                 'email' => 'outdoor.saigon@camprent.vn',
                 'password' => Hash::make('shop123'),
                 'role' => 'shop',
-                'address' => '45 Nguyễn Trãi, Q1, TP.HCM',
+                'address' => '45 Nguyen Trai, Q1, TP.HCM',
             ],
             [
-                'name' => 'Camp Đà Lạt Store',
+                'name' => 'Camp Da Lat Store',
                 'email' => 'camp.dalat@camprent.vn',
                 'password' => Hash::make('shop123'),
                 'role' => 'shop',
-                'address' => '12 Phan Đình Phùng, Đà Lạt, Lâm Đồng',
+                'address' => '12 Phan Dinh Phung, Da Lat, Lam Dong',
             ],
             [
-                'name' => 'Phượt Gear Hà Nội',
+                'name' => 'Phuot Gear Ha Noi',
                 'email' => 'phuot.hanoi@camprent.vn',
                 'password' => Hash::make('shop123'),
                 'role' => 'shop',
-                'address' => '88 Bạch Mai, Hai Bà Trưng, Hà Nội',
+                'address' => '88 Bach Mai, Hai Ba Trung, Ha Noi',
             ],
             [
                 'name' => 'Adventure Hub Nha Trang',
                 'email' => 'adventure.nhatrang@camprent.vn',
                 'password' => Hash::make('shop123'),
                 'role' => 'shop',
-                'address' => '23 Trần Phú, Nha Trang, Khánh Hòa',
+                'address' => '23 Tran Phu, Nha Trang, Khanh Hoa',
             ],
         ];
 

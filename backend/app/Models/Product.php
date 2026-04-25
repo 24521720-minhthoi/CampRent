@@ -9,6 +9,8 @@ class Product extends Model
 {
     use HasFactory;
 
+    protected $appends = ['pricing'];
+
     protected $fillable = [
         'name',
         'slug',
@@ -57,5 +59,37 @@ class Product extends Model
     public function requiresDeposit(): bool
     {
         return $this->deposit_amount > 0;
+    }
+
+    public function promotionTargets()
+    {
+        return $this->hasMany(PromotionTarget::class, 'target_id')
+            ->where('target_type', 'product');
+    }
+
+    public function getPricingAttribute(): array
+    {
+        $basePrice = (float) $this->price;
+        $pricing = [
+            'base_price' => $basePrice,
+            'final_price' => $basePrice,
+            'discount_amount' => 0.0,
+            'discount_percent' => 0.0,
+            'sale_badge' => false,
+            'promotion' => null,
+        ];
+
+        if (! $this->exists) {
+            return $pricing;
+        }
+
+        try {
+            $promotionPricing = app(\App\Services\PromotionService::class)
+                ->bestProductPromotionPreview($this, $basePrice);
+
+            return array_merge($pricing, $promotionPricing);
+        } catch (\Throwable) {
+            return $pricing;
+        }
     }
 }

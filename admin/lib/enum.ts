@@ -1,10 +1,10 @@
 export enum ProductStatus {
-  IN_STOCK = "Còn hàng",
-  RENTING = "Đang cho thuê",
-  MAINTENANCE = "Bảo trì",
-  SUSPEND = "Tạm ngưng",
-  DISCONTINUE = "Ngừng kinh doanh",
-  OUT_OF_STOCK = "Hết hàng",
+  IN_STOCK = "available",
+  RENTING = "rented",
+  MAINTENANCE = "maintenance",
+  SUSPEND = "suspended",
+  DISCONTINUE = "discontinued",
+  OUT_OF_STOCK = "out_of_stock",
 }
 
 export enum Role {
@@ -22,10 +22,13 @@ export enum PaymentMethod {
 export enum OrderStatus {
   PENDING = "pending",
   CONFIRMED = "confirmed",
-  PROCESSING = "processing",
-  SHIPPED = "shipped",
+  PACKING = "packing",
+  SHIPPING = "shipping",
   DELIVERED = "delivered",
+  COMPLETED = "completed",
   CANCELLED = "cancelled",
+  RETURNED = "returned",
+  REFUNDED = "refunded",
 }
 
 export enum PaymentStatus {

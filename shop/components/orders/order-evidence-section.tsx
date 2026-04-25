@@ -28,7 +28,7 @@ interface OrderEvidenceSectionProps {
 
 const getDefaultEvidenceType = (status: OrderStatus): OrderEvidenceType => {
   switch (status) {
-    case OrderStatus.PROCESSING:
+    case OrderStatus.PACKING:
       return OrderEvidenceType.SEND_PACKAGE;
     case OrderStatus.RETURNED:
       return OrderEvidenceType.RECEIVE_RETURN;

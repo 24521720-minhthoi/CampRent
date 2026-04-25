@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\AIServiceClient;
 use Illuminate\Http\Request;
@@ -119,7 +120,12 @@ class ChatController extends Controller
                 return;
             }
 
-            // Fallback to OpenRouter if AI service fails
+            if (blank(config('services.openrouter.key'))) {
+                $this->streamLocalFallback($conversation, $user, $data['message']);
+                return;
+            }
+
+            // Fallback to OpenRouter if AI service fails and a key is configured.
             $apiPayload = $this->buildApiPayload($conversation, $user, $data['message']);
 
             try {
@@ -131,18 +137,13 @@ class ChatController extends Controller
                 ])->timeout(0)->withOptions(['stream' => true])->post('https://openrouter.ai/api/v1/chat/completions', $apiPayload);
 
                 if ($response->failed()) {
-                    $this->streamEvent([
-                        'event' => 'error',
-                        'conversation_id' => $conversation->id,
-                        'message' => 'Assistant service returned an error. Please try again later.',
-                    ]);
-
                     Log::error('OpenRouter request failed', [
                         'conversation_id' => $conversation->id,
                         'status' => $response->status(),
                         'body' => $response->body(),
                     ]);
 
+                    $this->streamLocalFallback($conversation, $user, $data['message']);
                     return;
                 }
 
@@ -209,11 +210,7 @@ class ChatController extends Controller
                     'message' => $exception->getMessage(),
                 ]);
 
-                $this->streamEvent([
-                    'event' => 'error',
-                    'conversation_id' => $conversation->id,
-                    'message' => 'Failed to contact assistant. Please try again later.',
-                ]);
+                $this->streamLocalFallback($conversation, $user, $data['message']);
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',
@@ -271,6 +268,150 @@ class ChatController extends Controller
             Log::error('AI Service error', ['message' => $e->getMessage()]);
             return null;
         }
+    }
+
+    protected function streamLocalFallback(Conversation $conversation, User $user, string $message): void
+    {
+        $fallback = $this->buildLocalFallbackResponse($user, $message);
+        $assistantMessage = $fallback['message'];
+        $metadata = $fallback['metadata'];
+
+        $this->streamEvent([
+            'event' => 'delta',
+            'conversation_id' => $conversation->id,
+            'content' => $assistantMessage,
+        ]);
+
+        $this->streamEvent([
+            'event' => 'done',
+            'conversation_id' => $conversation->id,
+            'message' => $assistantMessage,
+            'metadata' => $metadata,
+            'usage' => null,
+        ]);
+
+        DB::transaction(function () use ($conversation, $assistantMessage, $metadata) {
+            $conversation->messages()->create([
+                'role' => 'assistant',
+                'content' => $assistantMessage,
+                'metadata' => $metadata,
+            ]);
+
+            $conversation->update(['last_message_at' => now()]);
+        });
+    }
+
+    protected function buildLocalFallbackResponse(User $user, string $message): array
+    {
+        $normalizedAscii = Str::of($message)->lower()->ascii()->squish()->value();
+
+        if (Str::contains($normalizedAscii, ['don hang', 'order', 'trang thai'])) {
+            $orders = $this->buildUserOrdersResponse($user);
+            $orders['metadata']['source'] = 'local_database';
+            return $orders;
+        }
+
+        if (Str::contains($normalizedAscii, ['ban chay', 'best seller', 'top'])) {
+            $bestSellers = $this->buildBestSellerResponse();
+            $bestSellers['metadata']['source'] = 'local_database';
+            return $bestSellers;
+        }
+
+        $query = Product::query()
+            ->with('category:id,name')
+            ->select('id', 'name', 'price', 'deposit_amount', 'description', 'category_id', 'status')
+            ->where('status', 'available')
+            ->orderBy('price');
+
+        $keywords = [
+            'leu' => ['leu', 'tent'],
+            'tui ngu' => ['tui ngu', 'sleeping'],
+            'bep' => ['bep', 'nau', 'noi', 'cook'],
+            'den' => ['den', 'pin', 'light'],
+            'ban ghe' => ['ban', 'ghe', 'chair', 'table'],
+            'balo' => ['balo', 'trekking', 'backpack'],
+            'combo' => ['combo', 'nhom', 'gia dinh'],
+        ];
+
+        $matchedTerms = [];
+        foreach ($keywords as $label => $terms) {
+            if (Str::contains($normalizedAscii, $terms)) {
+                $matchedTerms[] = $label;
+            }
+        }
+
+        $products = $query->limit(50)->get();
+
+        if ($matchedTerms !== []) {
+            $filtered = $products->filter(function (Product $product) use ($matchedTerms) {
+                $searchable = Str::of(implode(' ', [
+                    $product->name,
+                    $product->description,
+                    $product->category?->name,
+                ]))->lower()->ascii()->value();
+
+                foreach ($matchedTerms as $term) {
+                    if (str_contains($searchable, $term)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            })->values();
+
+            if ($filtered->isNotEmpty()) {
+                $products = $filtered;
+            }
+        }
+
+        $products = $products->take(5)->values();
+
+        if ($products->isEmpty()) {
+            $products = Product::query()
+                ->with('category:id,name')
+                ->select('id', 'name', 'price', 'deposit_amount', 'category_id', 'status')
+                ->where('status', 'available')
+                ->orderBy('price')
+                ->limit(5)
+                ->get();
+        }
+
+        if ($products->isEmpty()) {
+            return [
+                'message' => 'Tro ly CampRent dang hoat dong, nhung hien chua co san pham kha dung trong database de goi y. Ban hay kiem tra seed product hoac trang quan tri san pham.',
+                'metadata' => [
+                    'source' => 'local_database',
+                    'count' => 0,
+                ],
+            ];
+        }
+
+        $lines = $products->map(function (Product $product, int $index) {
+            $category = $product->category?->name ?? 'Do camping';
+            $deposit = (float) ($product->deposit_amount ?? 0);
+            $depositText = $deposit > 0 ? ', coc ' . $this->formatCurrency($deposit) : '';
+
+            return sprintf(
+                '%d. %s - %s/ngay (%s%s)',
+                $index + 1,
+                $product->name,
+                $this->formatCurrency($product->price),
+                $category,
+                $depositText
+            );
+        })->implode("\n");
+
+        $intro = 'Minh la tro ly CampRent AI ban demo noi bo. Hien minh dang dung du lieu san pham trong database de tu van nhanh.';
+        $tips = 'Goi y: neu di 2-4 nguoi, hay uu tien leu, tui ngu, den trai, bep da ngoai va bo noi nau an. Ban co the hoi "san pham ban chay" hoac "don hang toi da mua".';
+
+        return [
+            'message' => "{$intro}\n\nMot so san pham phu hop:\n{$lines}\n\n{$tips}",
+            'metadata' => [
+                'source' => 'local_database',
+                'count' => $products->count(),
+                'matched_terms' => $matchedTerms,
+            ],
+        ];
     }
 
     protected function buildApiPayload(Conversation $conversation, User $user, string $latestMessage): array
@@ -516,7 +657,7 @@ class ChatController extends Controller
 
     protected function systemPrompt(): string
     {
-        return 'Bạn là trợ lý ảo của nền tảng thương mại điện tử cho thuê đồ ReRent. ' .
+        return 'Bạn là trợ lý ảo của nền tảng thương mại điện tử cho thuê đồ CampRent. ' .
             'Ưu tiên sử dụng dữ liệu cửa hàng (sản phẩm, đơn hàng, thanh toán) được cung cấp trong các thông điệp hệ thống. ' .
             'Gợi ý người dùng thử các lệnh nhanh: "sản phẩm bán chạy" (hoặc "best seller") để xem top sản phẩm và "đơn hàng tôi đã mua" để xem lịch sử đơn hàng của họ.';
     }

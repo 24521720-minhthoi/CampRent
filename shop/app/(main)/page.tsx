@@ -6,6 +6,8 @@ import { StatsSection } from "@/components/home/stats-section";
 import { getCategories } from "@/services/categories";
 import { getProducts } from "@/services/products";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Trang chủ",
 };

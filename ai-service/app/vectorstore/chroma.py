@@ -8,7 +8,7 @@ from app.database import get_mysql_client
 class ChromaVectorStore:
     """ChromaDB vector store for product embeddings."""
     
-    COLLECTION_NAME = "rerent_products"
+    COLLECTION_NAME = "camprent_products"
     
     def __init__(self):
         self.settings = get_settings()
@@ -29,7 +29,7 @@ class ChromaVectorStore:
             client = self._get_client()
             self._collection = client.get_or_create_collection(
                 name=self.COLLECTION_NAME,
-                metadata={"description": "ReRent product embeddings for RAG"},
+                metadata={"description": "CampRent product embeddings for RAG"},
             )
         return self._collection
     

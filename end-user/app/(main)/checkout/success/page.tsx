@@ -45,7 +45,7 @@ export default function CheckoutSuccessPage() {
               Đặt thuê thành công!
             </h1>
             <p className="text-lg text-muted-foreground text-pretty">
-              Cảm ơn bạn đã tin tưởng ReRent. Chúng tôi sẽ liên hệ với bạn trong
+              Cảm ơn bạn đã tin tưởng CampRent. Chúng tôi sẽ liên hệ với bạn trong
               thời gian sớm nhất.
             </p>
           </div>

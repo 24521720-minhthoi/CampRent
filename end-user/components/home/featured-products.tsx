@@ -85,7 +85,7 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
                   <div className="flex items-center justify-between pt-2">
                     <div>
                       <div className="text-2xl font-bold text-primary">
-                        {formatCurrency(product.price)}
+                        {formatCurrency(product.pricing?.final_price ?? product.price)}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         / ngày

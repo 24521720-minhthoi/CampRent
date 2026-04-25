@@ -139,7 +139,7 @@ export function Footer() {
               </li>
               <li className="flex items-center space-x-2 text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>support@rerent.vn</span>
+                <span>support@camprent.vn</span>
               </li>
               <li className="flex items-center space-x-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
@@ -150,7 +150,7 @@ export function Footer() {
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 ReRent. Tất cả quyền được bảo lưu.</p>
+          <p>&copy; 2025 CampRent. Tất cả quyền được bảo lưu.</p>
         </div>
       </div>
     </footer>

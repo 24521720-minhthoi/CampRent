@@ -38,6 +38,7 @@ export function CheckoutContent() {
   });
   const { data: items } = useGetCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [promotionCode, setPromotionCode] = useState("");
 
   const {
     register,
@@ -71,10 +72,16 @@ export function CheckoutContent() {
     setIsProcessing(true);
     try {
       if (data.paymentMethod === PaymentMethod.CARD) {
-        const response = await checkoutByCard({ address: data.address });
+        const response = await checkoutByCard({
+          address: data.address,
+          promotionCode,
+        });
         router.push(response.url);
       } else if (data.paymentMethod === PaymentMethod.CASH) {
-        const response = await checkoutByCash({ address: data.address });
+        const response = await checkoutByCash({
+          address: data.address,
+          promotionCode,
+        });
         toast.success(
           response.message ||
             "Đặt thuê thành công! Vui lòng chuẩn bị tiền mặt khi nhận hàng."
@@ -272,6 +279,24 @@ export function CheckoutContent() {
             </CardContent>
           </Card>
 
+          <Card className="rounded-2xl border-0 bg-background/60 backdrop-blur">
+            <CardHeader>
+              <CardTitle>Ma giam gia</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Label htmlFor="promotionCode">Nhap coupon/voucher</Label>
+              <Input
+                id="promotionCode"
+                value={promotionCode}
+                onChange={(event) =>
+                  setPromotionCode(event.target.value.toUpperCase())
+                }
+                placeholder="SALE10"
+                className="rounded-2xl"
+              />
+            </CardContent>
+          </Card>
+
           {/* Service Features */}
           <Card className="rounded-2xl border-0 bg-background/60 backdrop-blur">
             <CardContent className="p-6">
@@ -330,6 +355,7 @@ export function CheckoutContent() {
               (total, item) => total + Number(item.total_price),
               0
             )}
+            summary={(items as any).summary}
             paymentMethod={paymentMethod as PaymentMethod}
             onSubmit={handleSubmit(onSubmit)}
             isProcessing={isProcessing}

@@ -4,6 +4,8 @@ import { getProductsByCategoryId } from "@/services/products";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 interface CategoryPageProps {
   params: {
     id: string;

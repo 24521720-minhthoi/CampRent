@@ -150,6 +150,35 @@ export function OrderDetail({ order, onRefetch }: OrderDetailProps) {
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Theo doi trang thai don hang</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(order.status_histories ?? []).map((history) => (
+                <div key={history.id} className="flex gap-3">
+                  <div className="mt-1 h-3 w-3 rounded-full bg-primary" />
+                  <div className="space-y-1">
+                    <div className="font-medium">
+                      {history.old_status
+                        ? `${statusConfig[history.old_status].label} -> ${statusConfig[history.new_status].label}`
+                        : statusConfig[history.new_status].label}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {formatDate(history.created_at)}
+                      {history.reason ? ` - ${history.reason}` : ""}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {(order.status_histories ?? []).length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Chua co lich su trang thai cho don hang nay.
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Sidebar */}

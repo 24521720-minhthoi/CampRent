@@ -38,7 +38,9 @@ export function ProductDetail({ product }: ProductDetailProps) {
   const { mutate: addToCart } = useAddProductToCart();
 
   const days = startDate && endDate ? calculateDays(startDate, endDate) : 1;
-  const totalPrice = product.price * quantity * days;
+  const dailyPrice = product.pricing?.final_price ?? product.price;
+  const totalPrice =
+    dailyPrice * quantity * days + Number(product.deposit_amount ?? 0) * quantity;
 
   const handleAddToCart = () => {
     if (!startDate || !endDate) {
@@ -134,9 +136,19 @@ export function ProductDetail({ product }: ProductDetailProps) {
 
           {/* Price */}
           <div className="space-y-1">
-            <div className="text-3xl font-bold text-primary">
-              {formatCurrency(product.price)}
+            <div className="flex items-center gap-3">
+              <div className="text-3xl font-bold text-primary">
+                {formatCurrency(dailyPrice)}
+              </div>
+              {product.pricing?.sale_badge && (
+                <Badge variant="destructive">SALE</Badge>
+              )}
             </div>
+            {product.pricing?.sale_badge && (
+              <div className="text-sm text-muted-foreground line-through">
+                {formatCurrency(product.pricing.base_price)}
+              </div>
+            )}
             <div className="text-muted-foreground">/ ngày</div>
           </div>
         </div>
@@ -226,8 +238,22 @@ export function ProductDetail({ product }: ProductDetailProps) {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Giá thuê ({days} ngày)</span>
-                    <span>{formatCurrency(product.price * days)}</span>
+                    <span>{formatCurrency(dailyPrice * days)}</span>
                   </div>
+                  {Number(product.deposit_amount ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <span>Deposit</span>
+                      <span>
+                        {formatCurrency(Number(product.deposit_amount) * quantity)}
+                      </span>
+                    </div>
+                  )}
+                  {product.pricing?.sale_badge && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount/day</span>
+                      <span>-{formatCurrency(product.pricing.discount_amount)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span>Số lượng</span>
                     <span>{quantity}</span>

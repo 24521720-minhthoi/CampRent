@@ -1,0 +1,109 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: camprent-backend
+    ports:
+      - "8000:80"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: camprent_db
+      DB_USERNAME: camprent_user
+      DB_PASSWORD: camprent_password
+      FRONTEND_URL: http://localhost:3000
+      AI_SERVICE_URL: http://ai-service:8001
+      AI_SERVICE_TIMEOUT: 30
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+      - backend_storage:/var/www/html/storage
+      - backend_cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: camprent-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: camprent_db
+      MYSQL_USER: camprent_user
+      MYSQL_PASSWORD: camprent_password
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  end-user:
+    image: node:20-alpine
+    container_name: camprent-end-user
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- -p 3000"
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    volumes:
+      - ./end-user:/app
+      - end_user_node_modules:/app/node_modules
+    depends_on:
+      - backend
+
+  shop:
+    image: node:20-alpine
+    container_name: camprent-shop
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- -p 3001"
+    ports:
+      - "3001:3001"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    volumes:
+      - ./shop:/app
+      - shop_node_modules:/app/node_modules
+    depends_on:
+      - backend
+
+  admin:
+    image: node:20-alpine
+    container_name: camprent-admin
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- -p 3002"
+    ports:
+      - "3002:3002"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+    volumes:
+      - ./admin:/app
+      - admin_node_modules:/app/node_modules
+    depends_on:
+      - backend
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: camprent-ai-service
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: mysql+pymysql://camprent_user:camprent_password@db:3306/camprent_db
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:
+  backend_vendor:
+  backend_storage:
+  backend_cache:
+  end_user_node_modules:
+  shop_node_modules:
+  admin_node_modules:

@@ -22,11 +22,13 @@ export enum PaymentMethod {
 export enum OrderStatus {
   PENDING = "pending",
   CONFIRMED = "confirmed",
-  PROCESSING = "processing",
-  SHIPPED = "shipped",
+  PACKING = "packing",
+  SHIPPING = "shipping",
   DELIVERED = "delivered",
+  COMPLETED = "completed",
   CANCELLED = "cancelled",
   RETURNED = "returned",
+  REFUNDED = "refunded",
 }
 
 export enum OrderEvidenceType {

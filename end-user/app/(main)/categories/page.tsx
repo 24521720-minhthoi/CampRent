@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getCategories } from "@/services/categories";
 import { CategoriesList } from "@/components/categories/categories-list";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Danh mục sản phẩm",
 };

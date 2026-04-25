@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { OrdersClient } from "@/components/orders/orders-client";
 
 export const metadata: Metadata = {
-  title: "Đơn hàng của tôi | ReRent",
+  title: "Đơn hàng của tôi | CampRent",
   description: "Quản lý và theo dõi đơn hàng thuê của bạn",
 };
 

@@ -6,140 +6,137 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Services\InventoryService;
+use App\Services\PricingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
 {
-    /**
-     * Lấy giỏ hàng của user hiện tại
-     */
-    public function index()
+    public function __construct(
+        private PricingService $pricingService,
+        private InventoryService $inventoryService,
+    ) {
+    }
+
+    public function index(Request $request)
     {
         $user = Auth::user();
-
         $cart = Cart::with('items.product.category')
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$cart) {
-            return response()->json(['data' => []]);
+        if (! $cart || $cart->items->isEmpty()) {
+            return response()->json([
+                'data' => [],
+                'summary' => $this->emptySummary(),
+                'total_items' => 0,
+                'total_price' => 0,
+            ]);
         }
+
+        $pricing = $this->pricingService->calculateCart(
+            $cart->items,
+            $user,
+            $request->query('promotion_code')
+        );
+        $this->pricingService->syncCartPrices($cart->items, $pricing);
+
+        $cart->load('items.product.category');
 
         return response()->json([
             'data' => $cart->items,
-            'total_items' => $cart->items->count(),
-            'total_price' => $cart->items->sum('total_price'),
+            'summary' => $pricing,
+            'total_items' => $cart->items->sum('quantity'),
+            'total_price' => $pricing['total_amount'],
         ]);
     }
 
-    /**
-     * Thêm sản phẩm vào giỏ
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity'   => 'required|integer|min:1',
+            'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
         $user = Auth::user();
-
-        // Tạo hoặc lấy cart của user hiện tại
         $cart = Cart::firstOrCreate(['user_id' => $user->id]);
-
-        // Bảo đảm cart thuộc về user đang login
-        if ($cart->user_id !== $user->id) {
-            return response()->json(['error' => 'Unauthorized access to this cart'], 403);
-        }
-
         $product = Product::findOrFail($validated['product_id']);
         $days = $this->calculateRentalDays($validated['start_date'], $validated['end_date']);
-        $quantity = $validated['quantity'];
-        $totalPrice = $product->price * $days * $quantity;
 
-        // Kiểm tra nếu sản phẩm đã có trong giỏ -> cập nhật
-        $cartItem = CartItem::where('cart_id', $cart->id)
+        $existing = CartItem::where('cart_id', $cart->id)
             ->where('product_id', $product->id)
+            ->whereDate('start_date', $validated['start_date'])
+            ->whereDate('end_date', $validated['end_date'])
             ->first();
 
-        if ($cartItem) {
-            $cartItem->update([
-                'quantity' => $cartItem->quantity + $quantity,
-                'days' => $days,
-                'total_price' => $cartItem->total_price + $totalPrice,
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
-            ]);
+        $requestedQuantity = (int) $validated['quantity'] + (int) ($existing?->quantity ?? 0);
+        $this->assertProductCanBeAdded($product, $validated['start_date'], $validated['end_date'], $requestedQuantity);
+
+        if ($existing) {
+            $existing->update(['quantity' => $requestedQuantity]);
+            $cartItem = $existing;
         } else {
             $cartItem = CartItem::create([
                 'cart_id' => $cart->id,
                 'product_id' => $product->id,
-                'quantity' => $quantity,
+                'quantity' => $validated['quantity'],
                 'days' => $days,
-                'total_price' => $totalPrice,
+                'total_price' => 0,
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
             ]);
         }
 
+        $this->refreshUserCartPricing($cart, $user);
+
         return response()->json([
             'message' => 'Product added to cart successfully',
-            'data' => $cartItem->load('product.category'),
+            'data' => $cartItem->fresh('product.category'),
         ], 201);
     }
 
-    /**
-     * Cập nhật sản phẩm trong giỏ
-     */
     public function update(Request $request, $itemId)
     {
         $validated = $request->validate([
-            'quantity'   => 'required|integer|min:1',
+            'quantity' => 'required|integer|min:1',
             'start_date' => 'required|date',
-            'end_date'   => 'required|date|after_or_equal:start_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
         $user = Auth::user();
-
         $cartItem = CartItem::with(['cart', 'product'])->findOrFail($itemId);
 
-        // Kiểm tra quyền sở hữu
         if ($cartItem->cart->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized access to this cart item'], 403);
         }
 
-        $product = $cartItem->product;
-        $days = $this->calculateRentalDays($validated['start_date'], $validated['end_date']);
-        $quantity = $validated['quantity'];
+        $this->assertProductCanBeAdded($cartItem->product, $validated['start_date'], $validated['end_date'], (int) $validated['quantity']);
 
         $cartItem->update([
-            'quantity' => $quantity,
-            'days' => $days,
+            'quantity' => $validated['quantity'],
+            'days' => $this->calculateRentalDays($validated['start_date'], $validated['end_date']),
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
-            'total_price' => $product->price * $days * $quantity,
         ]);
+
+        $this->refreshUserCartPricing($cartItem->cart, $user);
 
         return response()->json([
             'message' => 'Cart item updated successfully',
-            'data' => $cartItem->load('product.category'),
+            'data' => $cartItem->fresh('product.category'),
         ]);
     }
 
-    /**
-     * Xóa 1 sản phẩm khỏi giỏ
-     */
     public function destroy($itemId)
     {
         $user = Auth::user();
-
         $cartItem = CartItem::with('cart')->findOrFail($itemId);
 
-        // Kiểm tra quyền sở hữu
         if ($cartItem->cart->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized access to this cart item'], 403);
         }
@@ -149,21 +146,47 @@ class CartController extends Controller
         return response()->json(['message' => 'Cart item removed']);
     }
 
-    /**
-     * Xóa toàn bộ giỏ hàng
-     */
     public function clear()
     {
         $user = Auth::user();
-
         $cart = Cart::where('user_id', $user->id)->first();
 
         if ($cart) {
-            // Chỉ xóa cart của user hiện tại
             $cart->items()->delete();
         }
 
         return response()->json(['message' => 'Cart cleared successfully']);
+    }
+
+    private function assertProductCanBeAdded(Product $product, string $startDate, string $endDate, int $quantity): void
+    {
+        if ($product->status !== 'available') {
+            throw ValidationException::withMessages(['product_id' => "Product {$product->name} is not available."]);
+        }
+
+        $available = $this->inventoryService->availableQuantity(
+            $product,
+            Carbon::parse($startDate)->toDateString(),
+            Carbon::parse($endDate)->toDateString()
+        );
+
+        if ($quantity > $available) {
+            throw ValidationException::withMessages([
+                'quantity' => "Product {$product->name} has only {$available} unit(s) available for the selected dates.",
+            ]);
+        }
+    }
+
+    private function refreshUserCartPricing(Cart $cart, $user): void
+    {
+        $cart->load('items.product.category');
+
+        if ($cart->items->isEmpty()) {
+            return;
+        }
+
+        $pricing = $this->pricingService->calculateCart($cart->items, $user);
+        $this->pricingService->syncCartPrices($cart->items, $pricing);
     }
 
     private function calculateRentalDays(string $startDate, string $endDate): int
@@ -172,5 +195,19 @@ class CartController extends Controller
         $end = Carbon::parse($endDate)->startOfDay();
 
         return (int) $start->diffInDays($end) + 1;
+    }
+
+    private function emptySummary(): array
+    {
+        return [
+            'items' => [],
+            'rental_subtotal' => 0,
+            'deposit_total' => 0,
+            'insurance_fee' => 0,
+            'shipping_fee' => 0,
+            'discount_total' => 0,
+            'total_amount' => 0,
+            'discounts' => [],
+        ];
     }
 }

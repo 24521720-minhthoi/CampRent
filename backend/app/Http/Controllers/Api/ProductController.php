@@ -85,6 +85,7 @@ class ProductController extends Controller
             'slug'        => 'nullable|string|max:255|unique:products,slug',
             'description' => 'nullable|string',
             'price'       => 'required|numeric|min:0',
+            'deposit_amount' => 'nullable|numeric|min:0',
             'stock'       => 'required|integer|min:0',
             'category_id' => 'required|exists:categories,id',
             'image_url'   => 'nullable|string',
@@ -99,6 +100,7 @@ class ProductController extends Controller
                 'slug'        => $validatedData['slug'] ?? Str::slug($request->name),
                 'description' => $request->description,
                 'price'       => $request->price,
+                'deposit_amount' => $validatedData['deposit_amount'] ?? 0,
                 'stock'       => $request->stock,
                 'image_url'   => $request->images[0] ?? null,
                 'images'      => $request->images ?? null,
@@ -185,6 +187,7 @@ class ProductController extends Controller
             'name'        => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'price'       => 'sometimes|numeric|min:0',
+            'deposit_amount' => 'sometimes|numeric|min:0',
             'stock'       => 'sometimes|integer|min:0',
             'category_id' => 'sometimes|exists:categories,id',
             'image_url'   => 'nullable|string',
@@ -193,7 +196,7 @@ class ProductController extends Controller
         ]);
 
         $data = collect($validatedData)
-            ->only(['name', 'description', 'price', 'stock', 'category_id', 'image_url', 'images'])
+            ->only(['name', 'description', 'price', 'deposit_amount', 'stock', 'category_id', 'image_url', 'images'])
             ->toArray();
 
         if (array_key_exists('name', $data)) {

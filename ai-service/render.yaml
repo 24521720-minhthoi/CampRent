@@ -3,7 +3,7 @@
 
 services:
   - type: web
-    name: rerent-ai-service
+    name: camprent-ai-service
     runtime: docker
     dockerfilePath: ./Dockerfile
     envVars:

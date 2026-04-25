@@ -90,7 +90,7 @@ export default function ClientContactPage() {
               Hotline: <strong>1900 1234</strong>
             </p>
             <p className="text-sm text-muted-foreground">
-              Email: <strong>support@rerent.vn</strong>
+              Email: <strong>support@camprent.vn</strong>
             </p>
             <p className="text-sm text-muted-foreground">
               Địa chỉ: <strong>123 Nguyễn Huệ, Q1, TP.HCM</strong>

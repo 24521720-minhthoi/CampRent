@@ -148,7 +148,7 @@ const mockComments: Comment[] = [
 
 // Mock products for display
 const mockProducts: Record<number, { id: number; name: string }> = {
-  1: { id: 1, name: "Laptop Dell XPS 15" },
+  1: { id: 1, name: "Leu Naturehike Cloud Up 2" },
   2: { id: 2, name: "Áo thun nam" },
 };
 

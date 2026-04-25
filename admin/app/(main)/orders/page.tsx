@@ -35,6 +35,18 @@ import {
 import Image from "next/image";
 import { getAllOrdersForAdmin, updateOrderStatus } from "@/services/orders";
 
+const statusFlow: Record<OrderStatus, OrderStatus[]> = {
+  [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+  [OrderStatus.CONFIRMED]: [OrderStatus.PACKING, OrderStatus.CANCELLED],
+  [OrderStatus.PACKING]: [OrderStatus.SHIPPING, OrderStatus.CANCELLED],
+  [OrderStatus.SHIPPING]: [OrderStatus.DELIVERED],
+  [OrderStatus.DELIVERED]: [OrderStatus.COMPLETED, OrderStatus.RETURNED],
+  [OrderStatus.COMPLETED]: [OrderStatus.RETURNED],
+  [OrderStatus.RETURNED]: [OrderStatus.REFUNDED],
+  [OrderStatus.CANCELLED]: [],
+  [OrderStatus.REFUNDED]: [],
+};
+
 export default function OrdersPage() {
   const queryClient = useQueryClient();
 
@@ -141,12 +153,15 @@ export default function OrdersPage() {
                   <SelectItem value={OrderStatus.CONFIRMED}>
                     Đã xác nhận
                   </SelectItem>
-                  <SelectItem value={OrderStatus.PROCESSING}>
+                  <SelectItem value={OrderStatus.PACKING}>
                     Đang xử lý
                   </SelectItem>
-                  <SelectItem value={OrderStatus.SHIPPED}>Đang giao</SelectItem>
-                  <SelectItem value={OrderStatus.DELIVERED}>Đã giao</SelectItem>
-                  <SelectItem value={OrderStatus.CANCELLED}>Đã hủy</SelectItem>
+                  <SelectItem value={OrderStatus.SHIPPING}>Đang giao</SelectItem>
+                  <SelectItem value={OrderStatus.DELIVERED}>Da giao</SelectItem>
+                  <SelectItem value={OrderStatus.COMPLETED}>Hoan tat</SelectItem>
+                  <SelectItem value={OrderStatus.CANCELLED}>Da huy</SelectItem>
+                  <SelectItem value={OrderStatus.RETURNED}>Da tra</SelectItem>
+                  <SelectItem value={OrderStatus.REFUNDED}>Da hoan tien</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -260,24 +275,14 @@ export default function OrdersPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value={OrderStatus.PENDING}>
-                              Chờ xử lý
+                            <SelectItem value={order.status}>
+                              {statusConfig[order.status].label}
                             </SelectItem>
-                            <SelectItem value={OrderStatus.CONFIRMED}>
-                              Đã xác nhận
-                            </SelectItem>
-                            <SelectItem value={OrderStatus.PROCESSING}>
-                              Đang xử lý
-                            </SelectItem>
-                            <SelectItem value={OrderStatus.SHIPPED}>
-                              Đang giao
-                            </SelectItem>
-                            <SelectItem value={OrderStatus.DELIVERED}>
-                              Đã giao
-                            </SelectItem>
-                            <SelectItem value={OrderStatus.CANCELLED}>
-                              Đã hủy
-                            </SelectItem>
+                            {statusFlow[order.status].map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {statusConfig[status].label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -379,6 +384,36 @@ export default function OrdersPage() {
                                 <p className="text-sm">
                                   {order.address || "Chưa cập nhật"}
                                 </p>
+                              </div>
+                            </div>
+
+                            <div className="rounded-lg border bg-card p-4">
+                              <h4 className="mb-3 font-semibold">
+                                Lich su trang thai
+                              </h4>
+                              <div className="space-y-3">
+                                {(order.status_histories ?? []).map((history) => (
+                                  <div key={history.id} className="flex gap-3 text-sm">
+                                    <div className="mt-1 h-2 w-2 rounded-full bg-primary" />
+                                    <div>
+                                      <div className="font-medium">
+                                        {history.old_status
+                                          ? `${statusConfig[history.old_status].label} -> ${statusConfig[history.new_status].label}`
+                                          : statusConfig[history.new_status].label}
+                                      </div>
+                                      <div className="text-muted-foreground">
+                                        {formatDate(history.created_at)}
+                                        {history.actor?.name ? ` by ${history.actor.name}` : ""}
+                                        {history.reason ? ` - ${history.reason}` : ""}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {(order.status_histories ?? []).length === 0 && (
+                                  <p className="text-sm text-muted-foreground">
+                                    Chua co lich su trang thai.
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>

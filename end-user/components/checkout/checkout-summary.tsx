@@ -1,16 +1,17 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import type { CartItem } from "@/lib/types";
+import { PaymentMethod } from "@/lib/enum";
+import type { CartItem, PricingSummary } from "@/lib/types";
 import { formatCurrency, formatDate, getPaymentMethodLabel } from "@/lib/utils";
 import { Calendar, Loader2 } from "lucide-react";
-import { PaymentMethod } from "@/lib/enum";
 
 interface CheckoutSummaryProps {
   items: CartItem[];
   totalAmount: number;
+  summary?: PricingSummary;
   paymentMethod: PaymentMethod;
   onSubmit: () => void;
   isProcessing: boolean;
@@ -19,20 +20,27 @@ interface CheckoutSummaryProps {
 export function CheckoutSummary({
   items,
   totalAmount,
+  summary,
   paymentMethod,
   onSubmit,
   isProcessing,
 }: CheckoutSummaryProps) {
-  const insuranceFee = totalAmount * 0.05;
-  const finalTotal = totalAmount + insuranceFee;
+  const pricing = summary ?? {
+    rental_subtotal: totalAmount,
+    deposit_total: 0,
+    insurance_fee: 0,
+    shipping_fee: 0,
+    discount_total: 0,
+    total_amount: totalAmount,
+    discounts: [],
+  };
 
   return (
     <Card className="rounded-2xl border-0 bg-background/60 backdrop-blur sticky top-8">
       <CardHeader>
-        <CardTitle>Tóm tắt đơn hàng</CardTitle>
+        <CardTitle>Order summary</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Order Items */}
         <div className="space-y-4">
           {items.map((item) => (
             <div key={item.id} className="flex gap-3">
@@ -55,7 +63,7 @@ export function CheckoutSummary({
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">
-                    {item.quantity} x {item.days} ngày
+                    {item.quantity} x {item.days} days
                   </span>
                   <span className="font-medium">
                     {formatCurrency(item.total_price)}
@@ -68,38 +76,60 @@ export function CheckoutSummary({
 
         <Separator />
 
-        {/* Pricing Breakdown */}
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span>Tạm tính</span>
-            <span>{formatCurrency(totalAmount)}</span>
+            <span>Rental subtotal</span>
+            <span>{formatCurrency(pricing.rental_subtotal)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span>Phí vận chuyển</span>
-            <span className="text-green-600">Miễn phí</span>
+            <span>Deposit</span>
+            <span>{formatCurrency(pricing.deposit_total)}</span>
+          </div>
+          {pricing.discount_total > 0 && (
+            <div className="flex justify-between text-sm text-green-600">
+              <span>Discount</span>
+              <span>-{formatCurrency(pricing.discount_total)}</span>
+            </div>
+          )}
+          {pricing.discounts?.map((discount) => (
+            <div
+              key={`${discount.promotion_id}-${discount.level}`}
+              className="flex justify-between text-xs text-muted-foreground"
+            >
+              <span>{discount.name}</span>
+              <span>-{formatCurrency(discount.amount)}</span>
+            </div>
+          ))}
+          <div className="flex justify-between text-sm">
+            <span>Shipping</span>
+            <span>
+              {pricing.shipping_fee > 0
+                ? formatCurrency(pricing.shipping_fee)
+                : "Free"}
+            </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span>Bảo hiểm (5%)</span>
-            <span>{formatCurrency(insuranceFee)}</span>
+            <span>Insurance fee</span>
+            <span>{formatCurrency(pricing.insurance_fee)}</span>
           </div>
           <Separator />
           <div className="flex justify-between font-semibold text-lg">
-            <span>Tổng cộng</span>
-            <span className="text-primary">{formatCurrency(finalTotal)}</span>
+            <span>Total</span>
+            <span className="text-primary">
+              {formatCurrency(pricing.total_amount)}
+            </span>
           </div>
         </div>
 
         <Separator />
 
-        {/* Payment Method */}
         <div className="space-y-2">
-          <div className="text-sm font-medium">Phương thức thanh toán</div>
+          <div className="text-sm font-medium">Payment method</div>
           <div className="text-sm text-muted-foreground">
             {getPaymentMethodLabel(paymentMethod)}
           </div>
         </div>
 
-        {/* Submit Button */}
         <Button
           size="lg"
           className="w-full rounded-2xl"
@@ -109,24 +139,15 @@ export function CheckoutSummary({
           {isProcessing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Đang xử lý...
+              Processing...
             </>
           ) : (
-            "Xác nhận đặt thuê"
+            "Confirm rental"
           )}
         </Button>
 
-        {/* Terms */}
         <p className="text-xs text-muted-foreground text-center">
-          Bằng cách đặt thuê, bạn đồng ý với{" "}
-          <a href="/terms" className="text-primary hover:underline">
-            Điều khoản sử dụng
-          </a>{" "}
-          và{" "}
-          <a href="/privacy" className="text-primary hover:underline">
-            Chính sách bảo mật
-          </a>{" "}
-          của chúng tôi.
+          By confirming, you agree to the rental terms and return policy.
         </p>
       </CardContent>
     </Card>

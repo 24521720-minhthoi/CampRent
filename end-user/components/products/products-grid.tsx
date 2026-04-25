@@ -72,6 +72,11 @@ export function ProductsGrid() {
                   ? "Còn hàng"
                   : "Đang thuê"}
               </Badge>
+              {product.pricing?.sale_badge && (
+                <Badge variant="destructive" className="absolute top-12 left-3">
+                  SALE
+                </Badge>
+              )}
 
               {/* Favorite Button */}
               <Button
@@ -127,8 +132,15 @@ export function ProductsGrid() {
                 <div className="flex items-center justify-between pt-2">
                   <div>
                     <div className="text-2xl font-bold text-primary">
-                      {formatCurrency(product.price)}
+                      {formatCurrency(
+                        product.pricing?.final_price ?? product.price
+                      )}
                     </div>
+                    {product.pricing?.sale_badge && (
+                      <div className="text-xs text-muted-foreground line-through">
+                        {formatCurrency(product.pricing.base_price)}
+                      </div>
+                    )}
                     <div className="text-sm text-muted-foreground">/ ngày</div>
                   </div>
 

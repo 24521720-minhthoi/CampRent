@@ -24,11 +24,12 @@ export const getAllOrdersForAdmin = async (): Promise<Order[]> => {
 
 export const updateOrderStatus = async (
   id: number,
-  status: string
+  status: string,
+  reason?: string
 ): Promise<Order> => {
   const response = await axiosInstance.put(
     `${process.env.NEXT_PUBLIC_API_URL}/orders/${id}/status`,
-    { status }
+    { status, reason }
   );
   return response.data;
 };

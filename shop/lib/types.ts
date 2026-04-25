@@ -34,6 +34,8 @@ export interface Product {
   slug: string;
   description: string;
   price: number;
+  deposit_amount: number;
+  pricing?: ProductPricing;
   stock: number;
   image_url?: string;
   images?: string[];
@@ -44,6 +46,20 @@ export interface Product {
   shop?: User;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProductPricing {
+  base_price: number;
+  final_price: number;
+  discount_amount: number;
+  discount_percent: number;
+  sale_badge: boolean;
+  promotion: {
+    id: number;
+    name: string;
+    type: string;
+    value: number;
+  } | null;
 }
 
 export interface CartItem {
@@ -58,13 +74,37 @@ export interface CartItem {
   updated_at: string;
 }
 
+export interface PricingSummary {
+  rental_subtotal: number;
+  deposit_total: number;
+  insurance_fee: number;
+  shipping_fee: number;
+  discount_total: number;
+  total_amount: number;
+  discounts: Array<{
+    promotion_id: number;
+    code: string | null;
+    name: string;
+    type: string;
+    value: number;
+    amount: number;
+    level: string;
+  }>;
+}
+
 export interface Order {
   id: number;
   user_id: number;
   user: User;
   start_date: string;
   end_date: string;
+  rental_subtotal: string;
+  deposit_total: string;
+  insurance_fee: string;
+  shipping_fee: string;
+  discount_total: string;
   total_amount: string;
+  pricing_snapshot?: PricingSummary;
   status: OrderStatus;
   address: string;
   created_at: string;
@@ -93,8 +133,15 @@ export interface OrderItem {
   product: Product;
   quantity: number;
   price: string;
+  unit_deposit: string;
   days: number;
+  rental_subtotal: string;
+  discount_amount: string;
+  deposit_total: string;
   subtotal: string;
+  total_amount: string;
+  start_date: string;
+  end_date: string;
   created_at: string;
   updated_at: string;
   payment: Payment;

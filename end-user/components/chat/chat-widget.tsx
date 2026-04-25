@@ -317,7 +317,7 @@ export function ChatWidget() {
         <div className="flex h-152 w-86 flex-col overflow-hidden rounded-2xl border bg-background shadow-xl sm:w-[24rem]">
           <header className="flex items-center justify-between border-b bg-primary px-4 py-3 text-primary-foreground">
             <div>
-              <p className="text-sm font-semibold">Trợ lý ReRent AI</p>
+              <p className="text-sm font-semibold">Trợ lý CampRent AI</p>
               <p className="text-xs opacity-80">
                 {sendMessageMutation.isPending
                   ? "Đang tạo phản hồi..."

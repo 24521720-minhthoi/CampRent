@@ -41,6 +41,9 @@ const emptyDashboard = {
   revenueData: [],
   orderStatusData: [],
   topProductsData: [],
+  bestSellers: [],
+  topCustomersBySpend: [],
+  topCustomersByOrderCount: [],
   userGrowthData: [],
 } as DashboardResponse;
 
@@ -73,11 +76,11 @@ export default function AdminDashboard() {
   const orderStatusData = data.orderStatusData.length
     ? data.orderStatusData
     : [
-        { status: "Chờ xác nhận", value: 0, color: "var(--chart-1)" },
-        { status: "Đã xác nhận", value: 0, color: "var(--chart-2)" },
-        { status: "Đang giao", value: 0, color: "var(--chart-3)" },
-        { status: "Hoàn thành", value: 0, color: "var(--chart-4)" },
-        { status: "Đã hủy", value: 0, color: "var(--chart-5)" },
+        { status: "Pending", code: "pending", value: 0, color: "var(--chart-1)" },
+        { status: "Confirmed", code: "confirmed", value: 0, color: "var(--chart-2)" },
+        { status: "Packing", code: "packing", value: 0, color: "var(--chart-3)" },
+        { status: "Shipping", code: "shipping", value: 0, color: "var(--chart-4)" },
+        { status: "Completed", code: "completed", value: 0, color: "var(--chart-5)" },
       ];
 
   const topProductsData = data.topProductsData.length
@@ -361,6 +364,56 @@ export default function AdminDashboard() {
                 />
               </LineChart>
             </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Top customers by spend</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {data.topCustomersBySpend.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No paid orders yet.</p>
+            ) : (
+              data.topCustomersBySpend.map((customer) => (
+                <div key={customer.id} className="flex items-center justify-between text-sm">
+                  <div>
+                    <div className="font-medium">{customer.name}</div>
+                    <div className="text-muted-foreground">{customer.email}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold">{formatCurrency(customer.total_spent)}</div>
+                    <div className="text-muted-foreground">{customer.order_count} orders</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Top customers by orders</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {data.topCustomersByOrderCount.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No orders yet.</p>
+            ) : (
+              data.topCustomersByOrderCount.map((customer) => (
+                <div key={customer.id} className="flex items-center justify-between text-sm">
+                  <div>
+                    <div className="font-medium">{customer.name}</div>
+                    <div className="text-muted-foreground">{customer.email}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold">{customer.order_count} orders</div>
+                    <div className="text-muted-foreground">{formatCurrency(customer.total_spent)}</div>
+                  </div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>

@@ -157,7 +157,7 @@ export default function HelpPage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="gap-2" asChild>
-              <Link href="mailto:support@rerent.vn">
+              <Link href="mailto:support@camprent.vn">
                 <Mail className="h-4 w-4" />
                 Gửi email cho chúng tôi
               </Link>

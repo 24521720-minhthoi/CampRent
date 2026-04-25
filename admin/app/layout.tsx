@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard - ReRent",
-  description: "Admin Dashboard for ReRent Services",
+  title: "CampRent Admin",
+  description: "CampRent ecommerce administration dashboard",
 };
 
 export default function RootLayout({

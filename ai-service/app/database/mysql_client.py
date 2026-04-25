@@ -52,7 +52,7 @@ class MySQLClient:
                     c.slug as category_slug
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
-                WHERE p.status = 'Còn hàng'
+                WHERE p.status IN ('available', 'active') OR p.stock > 0
             """)
             return cursor.fetchall()
     
@@ -179,7 +179,7 @@ class MySQLClient:
                     c.name as category_name
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
-                WHERE p.status = 'active'
+                WHERE p.status IN ('available', 'active')
                   AND (p.name LIKE %s OR p.description LIKE %s)
                 LIMIT %s
             """, (search_pattern, search_pattern, limit))
@@ -201,7 +201,7 @@ class MySQLClient:
                     c.name as category_name
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
-                WHERE p.status = 'Còn hàng'
+                WHERE p.status IN ('available', 'active') OR p.stock > 0
                 ORDER BY CAST(p.price AS DECIMAL(15,2)) {order}
                 LIMIT %s
             """, (limit,))

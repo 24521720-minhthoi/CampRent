@@ -5,10 +5,10 @@ import { Footer } from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Admin ReRent",
-    absolute: "Đăng nhập và đăng ký | Admin ReRent",
+    template: "%s | CampRent Admin",
+    absolute: "Đăng nhập và đăng ký | CampRent Admin",
   },
-  description: "Đăng nhập và đăng ký để quản lý hệ thống ReRent",
+  description: "Đăng nhập và đăng ký để quản lý hệ thống CampRent",
 };
 
 export default function AuthLayout({

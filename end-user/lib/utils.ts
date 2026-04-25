@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { OrderStatus, PaymentMethod, PaymentStatus } from "./enum";
-import { Package, Clock, CheckCircle, XCircle, Truck } from "lucide-react";
+import { CheckCircle, Clock, Package, RotateCcw, Truck, XCircle } from "lucide-react";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -25,9 +25,9 @@ export function formatDate(date: string): string {
 export function calculateDays(startDate: string, endDate: string): number {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays || 1; // Minimum 1 day
+  const diffTime = end.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(1, diffDays + 1);
 }
 
 export function getInitials(name: string): string {
@@ -42,61 +42,43 @@ export function getInitials(name: string): string {
 export function getPaymentMethodLabel(method: PaymentMethod): string {
   switch (method) {
     case PaymentMethod.CASH:
-      return "Tiền mặt";
+      return "Cash on delivery";
     case PaymentMethod.BANK_TRANSFER:
-      return "Chuyển khoản";
+      return "Bank transfer";
     case PaymentMethod.CARD:
-      return "Thẻ tín dụng";
+      return "Card";
     default:
-      return "Tiền mặt";
+      return "Cash";
   }
 }
 
 export const statusConfig: Record<
   OrderStatus,
   {
-    label: OrderStatus;
+    label: string;
     variant: "default" | "secondary" | "destructive" | "outline";
     icon: any;
   }
 > = {
-  pending: { label: OrderStatus.PENDING, variant: "secondary", icon: Clock },
-  confirmed: {
-    label: OrderStatus.CONFIRMED,
-    variant: "default",
-    icon: CheckCircle,
-  },
-  processing: {
-    label: OrderStatus.PROCESSING,
-    variant: "default",
-    icon: Package,
-  },
-  shipped: { label: OrderStatus.SHIPPED, variant: "default", icon: Truck },
-  delivered: {
-    label: OrderStatus.DELIVERED,
-    variant: "default",
-    icon: CheckCircle,
-  },
-  cancelled: {
-    label: OrderStatus.CANCELLED,
-    variant: "destructive",
-    icon: XCircle,
-  },
-  returned: {
-    label: OrderStatus.RETURNED,
-    variant: "destructive",
-    icon: XCircle,
-  },
+  pending: { label: "Pending", variant: "secondary", icon: Clock },
+  confirmed: { label: "Confirmed", variant: "default", icon: CheckCircle },
+  packing: { label: "Packing", variant: "default", icon: Package },
+  shipping: { label: "Shipping", variant: "default", icon: Truck },
+  delivered: { label: "Delivered", variant: "default", icon: CheckCircle },
+  completed: { label: "Completed", variant: "default", icon: CheckCircle },
+  cancelled: { label: "Cancelled", variant: "destructive", icon: XCircle },
+  returned: { label: "Returned", variant: "outline", icon: RotateCcw },
+  refunded: { label: "Refunded", variant: "secondary", icon: RotateCcw },
 };
 
 export const paymentStatusConfig: Record<
   PaymentStatus,
   {
-    label: PaymentStatus;
+    label: string;
     variant: "default" | "secondary" | "destructive" | "outline";
   }
 > = {
-  pending: { label: PaymentStatus.PENDING, variant: "secondary" },
-  completed: { label: PaymentStatus.COMPLETED, variant: "default" },
-  failed: { label: PaymentStatus.FAILED, variant: "destructive" },
+  pending: { label: "Pending", variant: "secondary" },
+  completed: { label: "Completed", variant: "default" },
+  failed: { label: "Failed", variant: "destructive" },
 };

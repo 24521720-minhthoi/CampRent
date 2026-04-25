@@ -1,12 +1,16 @@
 import axiosInstance from "@/lib/axiosInstance";
 import { addProductToCartParams, updateCartItemParams } from "@/lib/params";
-import { CartItem } from "@/lib/types";
+import { CartItem, PricingSummary } from "@/lib/types";
 
-export const getCart = async (): Promise<CartItem[]> => {
+export type CartItemsWithSummary = CartItem[] & { summary?: PricingSummary };
+
+export const getCart = async (): Promise<CartItemsWithSummary> => {
   const response = await axiosInstance.get(
     `${process.env.NEXT_PUBLIC_API_URL}/cart`
   );
-  return response.data.data;
+  const items = response.data.data as CartItemsWithSummary;
+  items.summary = response.data.summary;
+  return items;
 };
 
 export const addProductToCart = async (data: addProductToCartParams) => {

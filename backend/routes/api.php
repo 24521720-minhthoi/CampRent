@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\OrderEvidenceController;
 use App\Http\Controllers\Api\ShopOrderController;
+use App\Http\Controllers\Api\PromotionController;
 
 // ========================== Public routes ==========================
 // 1. Auth & User
@@ -107,6 +108,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // 10. Admin dashboard
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+        Route::apiResource('/admin/promotions', PromotionController::class);
 
         Route::get('/admin/users', [\App\Http\Controllers\Api\AdminUserController::class, 'index']);
         Route::put('/admin/users/{id}/role', [\App\Http\Controllers\Api\AdminUserController::class, 'updateRole']);

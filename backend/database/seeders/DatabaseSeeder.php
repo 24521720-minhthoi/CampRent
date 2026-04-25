@@ -32,6 +32,9 @@ class DatabaseSeeder extends Seeder
         // === Products ===
         $this->call(ProductSeeder::class);
 
+        // === Promotions ===
+        $this->call(PromotionSeeder::class);
+
         // === Customer User ===
         User::create([
             'name' => 'Khách Hàng Demo',
@@ -40,5 +43,8 @@ class DatabaseSeeder extends Seeder
             'role' => 'customer',
             'address' => '227 Nguyễn Văn Cừ, Q5, TP.HCM',
         ]);
+
+        // === Demo analytics orders ===
+        $this->call(DemoOrderSeeder::class);
     }
 }

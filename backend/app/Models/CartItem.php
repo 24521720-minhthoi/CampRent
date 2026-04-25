@@ -19,6 +19,12 @@ class CartItem extends Model
         'total_price',
     ];
 
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'total_price' => 'decimal:2',
+    ];
+
     public function cart()
     {
         return $this->belongsTo(Cart::class);

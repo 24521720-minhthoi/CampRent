@@ -71,12 +71,15 @@ export function OrdersList({ orders }: { orders: Order[] }) {
                 <SelectItem value={OrderStatus.CONFIRMED}>
                   Đã xác nhận
                 </SelectItem>
-                <SelectItem value={OrderStatus.PROCESSING}>
+                <SelectItem value={OrderStatus.PACKING}>
                   Đang xử lý
                 </SelectItem>
-                <SelectItem value={OrderStatus.SHIPPED}>Đang giao</SelectItem>
-                <SelectItem value={OrderStatus.DELIVERED}>Đã giao</SelectItem>
-                <SelectItem value={OrderStatus.CANCELLED}>Đã hủy</SelectItem>
+                <SelectItem value={OrderStatus.SHIPPING}>Đang giao</SelectItem>
+                <SelectItem value={OrderStatus.DELIVERED}>Da giao</SelectItem>
+                <SelectItem value={OrderStatus.COMPLETED}>Hoan tat</SelectItem>
+                <SelectItem value={OrderStatus.CANCELLED}>Da huy</SelectItem>
+                <SelectItem value={OrderStatus.RETURNED}>Da tra</SelectItem>
+                <SelectItem value={OrderStatus.REFUNDED}>Da hoan tien</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -208,8 +211,8 @@ export function OrdersList({ orders }: { orders: Order[] }) {
                 orders.filter((o) =>
                   [
                     OrderStatus.CONFIRMED,
-                    OrderStatus.PROCESSING,
-                    OrderStatus.SHIPPED,
+                    OrderStatus.PACKING,
+                    OrderStatus.SHIPPING,
                   ].includes(o.status)
                 ).length
               }

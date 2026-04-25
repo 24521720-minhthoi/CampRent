@@ -1,4 +1,4 @@
-# AI Chatbot Service - ReRent
+# AI Chatbot Service - CampRent
 
 AI service sử dụng FastAPI + LangChain + ChromaDB để tư vấn sản phẩm cho thuê.
 
@@ -103,18 +103,18 @@ In Render Dashboard → Environment:
 
 ### Step 4: Update Laravel Backend
 
-After deploy, you'll get URL like `https://rerent-ai-service.onrender.com`
+After deploy, you'll get URL like `https://camprent-ai-service.onrender.com`
 
 Update Laravel `.env`:
 
 ```env
-AI_SERVICE_URL=https://rerent-ai-service.onrender.com
+AI_SERVICE_URL=https://camprent-ai-service.onrender.com
 ```
 
 ### Step 5: Sync Products
 
 ```bash
-curl -X POST https://rerent-ai-service.onrender.com/sync
+curl -X POST https://camprent-ai-service.onrender.com/sync
 ```
 
 > **Note**: Render free tier will spin down after 15 minutes of inactivity. First request may take ~30s to wake up.
